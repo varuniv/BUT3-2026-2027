@@ -1,5 +1,4 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -21,3 +20,16 @@ struct fabriqueBallon (SDL_Texture tabTexture[] , SDL_Rect tabPositions, int nbB
     
 
 }
+struct listeChainee {
+    struct maillon* premierElement;
+    int nbElements;
+};
+
+struct maillon {
+    int* prochainElement; 
+    int valeur;
+};
+
+
+
+
