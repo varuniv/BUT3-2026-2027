@@ -1,0 +1,16 @@
+10 Match(b:Bar) where b.city="Paris" return b.name
+11 Match(b:Bar)-[:Sells]-(c:Beer) where b.city="Paris" and c.name="Corona" return b.name
+12 Match(b:Bar)-[:Sells]-(c:Beer) where b.city="Paris" and (c.name="Corona" or c.name="Antactica") return b.name
+13 Match(dr:Drinker)-[:Goes]-(b:Bar) where b.city="Paris" and dr.sexe="F" return dr.name
+14 Match (beer:Beer)<-[:Likes]-(dr:Drinker)-[:Goes]-(b:Bar) where b.city="Paris" and dr.sexe="F" and beer.name="Bohemia" return dr.name
+15 MATCH (b:Bar) where b.rating_service >3 or b.rating_service>3 return distinct b.name  
+16 MATCH (b:Bar)   return b.name, toFloat(b.rating_hygiene+b.rating_service)/2
+17 MATCH (b:Bar)  where  toFloat(b.rating_hygiene+b.rating_service)/2 > 4 return b.name, toFloat(b.rating_hygiene+b.rating_service)/2
+18 MATCH (dr:Drinker) return dr.name order by dr.age, dr.sex
+19 match (dr:Drinker)-[go:Goes]-(b:Bar) return dr.name, b.name , go.startYear order by go.startYear
+20 match (dr:Drinker)-[go:Goes]-(b:Bar) where go.startYear=2022 return dr.name, b.name , go.startYear 
+21 match (dr:Drinker)-[go:Goes]-(b:Bar)-[:Goes]-(dr2:Drinker) return dr.name, dr2.name
+22 Match (p:Drinker)-[:FriendOf*]->()-[:Likes]->(br:Beer) where br.name="Antarctica" return distinct p.name 
+23 Match (p:Drinker)<-[:FriendOf]-(dr:Drinker)-[:Goes]->(bar:Bar) where bar.name="Brasil" return p.name
+24 Match chemain=(p:Drinker)<-[:FriendOf]-(dr:Drinker)-[:Goes]->(bar:Bar) where bar.name="Brasil" return chemain
+25 Match(p:Drinker) where p.name contains "B" and p.name contains "b" return p.name
