@@ -1,0 +1,14 @@
+1 Match (p:Person)<-[isParentOf]-(p2:Person) where p.name="Lisette" return p2.name
+2 Match (p:Person)<-[isParentOf]-(Person)<-[r2:isParentOf]-(p3:Person) where p.name="Lisette" return p3.name
+3 Match (p:Person)<-[isParentOf*]-(p2:Person) where p.name="Lisette" return p2.name
+4 Match (p:Person)<-[isParentOf]-(Person)-[r2:isParentOf]->(p3:Person) where p>p3 return p.name , p3.name
+5 Match (p:Person)<-[isParentOf*]-(p2:Person)-[r2:isParentOf*]->(p3:Person) where p>p3 return p.name , p3.name, p2.name 
+
+6 Match path=(p:Person)<-[isParentOf*]-(p2:Person) where p>p2 return p.name , p2.name, length(path)
+
+8 Match (m:Person) <-[path1:isParentOf*2..]-(p:Person)-[path2:isParentOf*2..]->(n:Person)
+where (size(path1)=size(path2) and (p1.name < p2.name))
+return p1.name, p2.name, size(path1), size(path2)
+
+9 MAtch math1=(n)-(*)-(m)
+return n.name, m,name, length(path1)
