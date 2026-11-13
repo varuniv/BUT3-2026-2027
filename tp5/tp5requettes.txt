@@ -1,0 +1,14 @@
+1
+MATCH (s:STATION)-[:byTrain]->(g:STATION) WHERE g.ville = "Paris" RETURN DISTINCT s.name AS station, g.name AS gareParisienne
+
+4
+MATCH path((x)-[r:byTrain|byCar*]-(y))
+RETURN path,length(path) LIMIT 4
+
+5
+
+MATCH path =( m1 {name:"Orleans"})-[:byTrain|byCar*]-(m2{name:'Bourges'})
+UNWIND nodes(path) as node
+WITH m1,m2,path,size(collect(DISTINCT node)) as NbOfNodes
+WHERE length(path) < NbOfNodes
+RETURN m1.name, m2.name,length(path),[n in nodes(path)|n.nbme] as stations, [m in relationships(path)|type(m) ] as TypeTransport

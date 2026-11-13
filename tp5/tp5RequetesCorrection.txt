@@ -1,0 +1,160 @@
+TP5 - Requetes Cypher sur la base de donnees transport
+
+1. Stations ayant une liaison directe en train vers Paris
+
+MATCH (station:STATION)-[:byTrain]->(gareParis:STATION)
+WHERE gareParis.ville = "Paris"
+RETURN DISTINCT station.name AS station, gareParis.name AS gareParisienne
+
+2. Stations ayant une liaison directe en train, bus ou voiture vers Paris
+
+MATCH (station:STATION)-[liaison:byTrain|byBus|byCar]->(gareParis:STATION)
+WHERE gareParis.ville = "Paris"
+RETURN DISTINCT station.name AS station,
+       gareParis.name AS gareParisienne,
+       type(liaison) AS typeTransport
+
+3. Quatre trajets possibles entre Orleans et Tours
+
+MATCH chemin = (depart:STATION {name: "Orleans"})-[*]-(arrivee:STATION {name: "Tours"})
+RETURN [station IN nodes(chemin) | station.name] AS stations,
+       length(chemin) AS longueur
+LIMIT 4
+
+Sans LIMIT, Neo4j renvoie tous les chemins possibles. Les longueurs peuvent etre
+importantes car les trajets ne sont pas limites en nombre de liaisons et peuvent
+repasser par une meme station (sans reutiliser une meme relation dans un chemin).
+
+4. Quatre trajets entre Orleans et Tours en train ou en voiture
+
+MATCH chemin = (depart:STATION {name: "Orleans"})-[liaisons*]-(arrivee:STATION {name: "Tours"})
+WHERE all(liaison IN liaisons WHERE type(liaison) IN ["byTrain", "byCar"])
+RETURN [station IN nodes(chemin) | station.name] AS stations,
+       length(chemin) AS longueur
+LIMIT 4
+
+5. Trajets sans boucle entre Orleans et Bourges, en train ou en voiture
+
+MATCH chemin = (depart:STATION {name: "Orleans"})-[liaisons*]-(arrivee:STATION {name: "Bourges"})
+WHERE all(liaison IN liaisons WHERE type(liaison) IN ["byTrain", "byCar"])
+  AND all(station IN nodes(chemin)
+          WHERE single(autre IN nodes(chemin) WHERE autre = station))
+RETURN length(chemin) AS LongueurChemin,
+       [station IN nodes(chemin) | station.name] AS stations,
+       [liaison IN relationships(chemin) | type(liaison)] AS typeTransport
+
+6. Plus court chemin entre chaque paire de stations (une seule fois par paire)
+
+MATCH (station1:STATION), (station2:STATION)
+WHERE station1.name < station2.name
+MATCH chemin = shortestPath((station1)-[*]-(station2))
+RETURN station1.name AS depart,
+       station2.name AS arrivee,
+       [station IN nodes(chemin) | station.name] AS stations
+
+La base contient 15 stations, toutes connectees si l'on ignore le sens des
+relations. En ne gardant qu'une occurrence de chaque paire, on obtient
+15 * 14 / 2 = 105 resultats.
+
+7. Les 30 premiers resultats de la question precedente
+
+MATCH (station1:STATION), (station2:STATION)
+WHERE station1.name < station2.name
+MATCH chemin = shortestPath((station1)-[*]-(station2))
+RETURN station1.name AS depart,
+       station2.name AS arrivee,
+       [station IN nodes(chemin) | station.name] AS stations
+LIMIT 30
+
+8. Un plus court chemin entre Orleans et Bourges avec les transports utilises
+
+MATCH chemin = shortestPath(
+  (depart:STATION {name: "Orleans"})-[*]-(arrivee:STATION {name: "Bourges"})
+)
+RETURN [station IN nodes(chemin) | station.name] AS stations,
+       [liaison IN relationships(chemin) | type(liaison)] AS typeTransport
+
+9. Tous les plus courts chemins entre Orleans et Bourges
+
+MATCH chemin = allShortestPaths(
+  (depart:STATION {name: "Orleans"})-[*]-(arrivee:STATION {name: "Bourges"})
+)
+RETURN [station IN nodes(chemin) | station.name] AS stations,
+       [liaison IN relationships(chemin) | type(liaison)] AS typeTransport
+
+Contrairement a shortestPath, allShortestPaths renvoie toutes les solutions de
+longueur minimale. Il peut donc y avoir plusieurs resultats, notamment lorsque
+des stations sont reliees par plusieurs types de transport.
+
+10. Tous les trajets en bus et leur empreinte carbone totale
+
+MATCH chemin = (depart:STATION)-[:byBus*1..]->(arrivee:STATION)
+WITH chemin,
+     reduce(total = 0, liaison IN relationships(chemin) | total + liaison.cp) AS totalCP
+RETURN [station IN nodes(chemin) | station.name] AS stations,
+       totalCP
+ORDER BY totalCP DESC
+
+11. Les 10 trajets avec l'empreinte carbone totale la plus elevee
+
+MATCH chemin = (depart:STATION)-[*1..]-(arrivee:STATION)
+WHERE depart <> arrivee
+WITH chemin,
+     reduce(total = 0, liaison IN relationships(chemin) | total + liaison.cp) AS totalCP
+RETURN [station IN nodes(chemin) | station.name] AS stations,
+       [liaison IN relationships(chemin) | type(liaison)] AS typesTransport,
+       totalCP
+ORDER BY totalCP DESC
+LIMIT 10
+
+12. Tous les plus courts trajets d'Amboise vers une gare parisienne
+
+MATCH (depart:STATION {name: "Amboise"}), (gareParis:STATION)
+WHERE gareParis.ville = "Paris"
+MATCH chemin = allShortestPaths((depart)-[*]-(gareParis))
+WITH chemin,
+     reduce(total = 0, liaison IN relationships(chemin) | total + liaison.cp) AS totalCP
+RETURN [station IN nodes(chemin) | station.name] AS stations,
+       [liaison IN relationships(chemin) | type(liaison)] AS typesTransport,
+       totalCP
+ORDER BY totalCP DESC
+
+13. Connexions en train depuis Orleans, sans boucle
+
+MATCH chemin = (depart:STATION {name: "Orleans"})-[:byTrain*1..]->(arrivee:STATION)
+WHERE all(station IN nodes(chemin)
+          WHERE single(autre IN nodes(chemin) WHERE autre = station))
+RETURN arrivee.name AS destination,
+       [station IN nodes(chemin) | station.name] AS stations,
+       length(chemin) AS longueur
+
+14. Connexions en train depuis Orleans, sans boucle, avec l'empreinte carbone
+
+MATCH chemin = (depart:STATION {name: "Orleans"})-[:byTrain*1..]->(arrivee:STATION)
+WHERE all(station IN nodes(chemin)
+          WHERE single(autre IN nodes(chemin) WHERE autre = station))
+RETURN arrivee.name AS destination,
+       [station IN nodes(chemin) | station.name] AS stations,
+       length(chemin) AS longueur,
+       reduce(total = 0, liaison IN relationships(chemin) | total + liaison.cp) AS totalCP
+
+15. Comparaison des trajets entierement en train et entierement en bus depuis Orleans
+
+MATCH trajetTrain =
+  (depart:STATION {name: "Orleans"})-[:byTrain*1..]->(arrivee:STATION)
+WHERE all(station IN nodes(trajetTrain)
+          WHERE single(autre IN nodes(trajetTrain) WHERE autre = station))
+WITH depart, arrivee, trajetTrain,
+     reduce(total = 0, liaison IN relationships(trajetTrain) | total + liaison.cp) AS totalCPTrain,
+     reduce(total = 0, liaison IN relationships(trajetTrain) | total + liaison.cost) AS totalCostTrain
+MATCH trajetBus = (depart)-[:byBus*1..]->(arrivee)
+WHERE all(station IN nodes(trajetBus)
+          WHERE single(autre IN nodes(trajetBus) WHERE autre = station))
+RETURN depart.name AS n1_name,
+       arrivee.name AS n2_name,
+       length(trajetTrain) AS LengthByTrain,
+       totalCPTrain,
+       totalCostTrain,
+       length(trajetBus) AS LengthByBus,
+       reduce(total = 0, liaison IN relationships(trajetBus) | total + liaison.cp) AS totalCPBus,
+       reduce(total = 0, liaison IN relationships(trajetBus) | total + liaison.cost) AS totalCostBus
