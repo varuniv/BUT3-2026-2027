@@ -1,0 +1,5 @@
+db.etudiants.insertMany([
+    {nom:"Lincoln", prenom:"Steve", age:"21",cours:["BD","Piége"]},
+    {nom:"Meow", prenom:"Meow", age:"19",cours:["BD","Meow"]},
+    {nom:"LEVOIYAN", prenom:"Boris", age:"21",cours:["Magie","Cuisine"], activie:"Invocation"},
+])
