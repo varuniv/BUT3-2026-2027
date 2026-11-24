@@ -42,19 +42,28 @@ def Matrotation(angle):
 def Matdilatation(coefDilatation):
   return ((coefDilatation,0),
                   (0, coefDilatation))
+
+def prodMatMat(MatA, MatB ):
+
+   ( (a11,a12), (a21, a22) ) = MatA
+   ( (B11,B12), (B21, B22) ) = MatB
+
+   return ( (a11*B11+a12* B21 , a11*B12+a12* B22 ), ( a21*B11+a22* B21 , a21*B12+a22* B22 ) )
                     
-dessin = svgwrite.Drawing('question3.svg', size=(1000,800))
+dessin = svgwrite.Drawing('question6.svg', size=(1000,800))
 
 carre=[(100,100),(100,-100),(-100,-100),(-100,100)]
 
 trans=(300,300)
 
-angle = pi/24
+angle = 7*pi/36
+coef = 0.5
 
-for i in range(5):
-
-    carre_out=[translater(prodMatVect(Matdilatation(0.5**i),sommet),(200*i,200)) for sommet in carre]
-    dessin.add(dessin.polygon(carre_out, fill="#0011FF", stroke="#000000", opacity=0.2))
+for i in range(11):
+  matModelisation=prodMatMat(Matrotation(angle*2*i),Matdilatation(coef*0.8**i))
+  trans = (150*i*0.2,100)
+  carre_out=[translater(prodMatVect(matModelisation,sommet),trans) for sommet in carre]
+  dessin.add(dessin.polygon(carre_out, fill="#FF0000", stroke="#000000", opacity=0.7))
 
 dessin.save()
 
