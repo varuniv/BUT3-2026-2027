@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 from math import *
-
-import svgwrite
+import svgwrite 
 #dessin  = svgwrite.Drawing('exercice_1.svg', size=(800,600))
 #triangle=[(0,0),(400,0),(200,300)]
 #triangle2=[(0,300),(400,300),(200,0)]
-#
 #
 #
 #dessin.add(dessin.polygon(triangle, fill='#0000FF',\
@@ -45,15 +43,18 @@ def Matdilatation(coefDilatation):
   return ((coefDilatation,0),
                   (0, coefDilatation))
                     
-dessin = svgwrite.Drawing('question4.svg', size=(800,600))
+dessin = svgwrite.Drawing('question3.svg', size=(1000,800))
 
-carre=[(200,200),(200,-200),(-200,-200),(-200,200)]
+carre=[(100,100),(100,-100),(-100,-100),(-100,100)]
 
-trans=(300,250)
+trans=(300,300)
 
 angle = pi/24
 
+for i in range(5):
 
+    carre_out=[translater(prodMatVect(Matdilatation(0.5**i),sommet),(200*i,200)) for sommet in carre]
+    dessin.add(dessin.polygon(carre_out, fill="#0011FF", stroke="#000000", opacity=0.2))
 
 dessin.save()
 
