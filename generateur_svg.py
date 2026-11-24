@@ -50,7 +50,7 @@ def prodMatMat(MatA, MatB ):
 
    return ( (a11*B11+a12* B21 , a11*B12+a12* B22 ), ( a21*B11+a22* B21 , a21*B12+a22* B22 ) )
                     
-dessin = svgwrite.Drawing('question6.svg', size=(1000,800))
+dessin = svgwrite.Drawing('question8.svg', size=(1000,800))
 
 carre=[(100,100),(100,-100),(-100,-100),(-100,100)]
 
@@ -59,11 +59,16 @@ trans=(300,300)
 angle = 7*pi/36
 coef = 0.5
 
-for i in range(11):
-  matModelisation=prodMatMat(Matrotation(angle*2*i),Matdilatation(coef*0.8**i))
-  trans = (150*i*0.2,100)
-  carre_out=[translater(prodMatVect(matModelisation,sommet),trans) for sommet in carre]
-  dessin.add(dessin.polygon(carre_out, fill="#FF0000", stroke="#000000", opacity=0.7))
+aux=100
+points=[(aux, aux),(-aux, aux),(-aux, -aux),(aux, -aux)]
+triangles=[0,1,2,0,2,3]
+
+
+i=0
+dessin.add(dessin.polygon((points[triangles[3*i]],points[triangles[3*i+1]],points[triangles[3*i+2]]), fill='blue',  opacity=0.5,stroke='black'))
+i=1
+dessin.add(dessin.polygon((points[triangles[3*i]],points[triangles[3*i+1]],points[triangles[3*i+2]]), fill='blue',  opacity=0.5,stroke='black'))
+
 
 dessin.save()
 
